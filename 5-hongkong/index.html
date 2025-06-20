@@ -33,7 +33,8 @@
         let protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
 
-        const basemap = new pmtiles.PMTiles("./basemap-hongkong2.pmtiles");
+        // What ChatGPT suggest me to do
+        const basemap = new pmtiles.PMTiles("./basemap-hongkong2.pmtiles"); // Using hong kong 2 pmtiles here
         protocol.add(basemap);
 
         const map = new maplibregl.Map({
@@ -47,7 +48,7 @@
                 sources: {
                     basemap: {
                         type: "vector",
-                        url: "pmtiles://./basemap-hongkong2.pmtiles",
+                        url: "pmtiles://./basemap-hongkong2.pmtiles",  // Using hong kong 2 pmtiles here
                         attribution: "<a href='https://protomaps.com'>Protomaps</a> <a href='https://openstreetmap.org/copyright'>© OpenStreetMap Contributors</a>"
                     },
                     other_source: {
