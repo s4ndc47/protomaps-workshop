@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>Protomaps - Hurricane Zones</title>
+    <title>Protomaps - Hong Kong</title>
     <meta charset="utf-8" />
     <script src="https://unpkg.com/maplibre-gl@^5.2.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@^5.2.0/dist/maplibre-gl.css" rel="stylesheet" />
@@ -32,6 +32,9 @@
     <script type="text/javascript">
         let protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
+
+        const basemap = new pmtiles.PMTiles("./basemap-hongkong2.pmtiles");
+        protocol.add(basemap);
 
         const map = new maplibregl.Map({
             container: "map",
