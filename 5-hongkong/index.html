@@ -1,0 +1,142 @@
+<html>
+
+<head>
+    <title>Protomaps - Hurricane Zones</title>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/maplibre-gl@^5.2.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@^5.2.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/pmtiles@4.2.1/dist/pmtiles.js"></script>
+    <script src="https://unpkg.com/@protomaps/basemaps@5.0.0/dist/basemaps.js"></script>
+    <style>
+        body {
+            margin: 10px;
+            align-items: center;  
+            justify-content: center; 
+        }
+
+        #map {
+            height: 70%;
+            width: 80%;
+            border: 2px solid #ccc;  
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <h3 id="title">List of Available Surplus Government Accommodation for Leasing to Non-Governmental Organisations in Hong Kong</h1>
+        <p id="instructions">💡 Hover over a spot to see building info and photo.</p>
+    </div>
+    <div id="map"></div>
+    <script type="text/javascript">
+        let protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol("pmtiles", protocol.tile);
+
+        const map = new maplibregl.Map({
+            container: "map",
+            zoom: 20,
+            center: [114.1549485, 22.4127908],
+            style: {
+                version: 8,
+                glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+                sprite: `https://protomaps.github.io/basemaps-assets/sprites/v4/light`,
+                sources: {
+                    basemap: {
+                        type: "vector",
+                        url: "pmtiles://./basemap-hongkong2.pmtiles",
+                        attribution: "<a href='https://protomaps.com'>Protomaps</a> <a href='https://openstreetmap.org/copyright'>© OpenStreetMap Contributors</a>"
+                    },
+                    other_source: {
+                        type: "geojson",
+                        data: "./psi-d-sgaal-cs.geojson"
+                    }
+                },
+                layers: [
+                    ...basemaps.layers("basemap", basemaps.namedFlavor("grayscale")),
+                    {
+                        id: "other_layer",
+                        source: "other_source",
+                        type: "circle",
+                        'paint': {
+                            "circle-radius": 10,
+                             "circle-color": [
+                                "match",
+                                ["get", "en_declared_monument_grading_historic_building"],
+                                "Grade 1", "#028900",
+                                "Grade 2", "#74d600",
+                                "Grade 3", "#adff00",
+                                "Declared Monument", "#c9df8a",
+                                "Not applicable", "#4b86b4",
+                                "#eeeeee"        // default color if no match
+                            ],
+                            'circle-opacity': 0.8
+                        }
+                    },
+                    ...basemaps.layers("basemap", basemaps.namedFlavor("grayscale"), { lang: "en", labelsOnly: true })
+                ]
+            },
+        });
+
+        // map.addControl add zoom buttons to the map (and others if you want).
+        map.addControl(new maplibregl.NavigationControl({
+            showZoom: true,
+            showCompass: false
+        }));
+
+        // map.fitBounds pre-zooms the map to fit the latitude/longitude boundaries
+        // of the parade route. Points are the southwest and northeast corners.
+        // Helpful for resizing to maps of different sizes! (Mobile or desktop)
+        map.fitBounds([
+         [114.1020505, 22.2186398], // southwest corner: [west, south]
+          [114.2770352, 22.5030403]  // northeast corner: [east, north]
+        ], { padding: 20 });
+
+        // start of popup code ...
+
+// Declare popup object
+// Create the popup if not already defined
+const popup = new maplibregl.Popup({
+    closeButton: false,
+    closeOnClick: false
+});
+
+// Tooltip: mousemove
+    map.on("mousemove", "other_layer", (e) => {
+        map.getCanvas().style.cursor = "pointer";
+
+        if (!e.features.length) return;
+
+        const coordinates = e.lngLat;
+        const props = e.features[0].properties;
+
+        const name = props.en_name || "Unknown Building";
+        const grade = props.en_declared_monument_grading_historic_building || "Not Graded";
+        const photo = props.en_photo || "";
+
+        const description = `
+            <div style="max-width: 220px;">
+                <b>${name}</b><br/>
+                Grading: ${grade}<br/>
+                ${photo ? `<img src="${photo}" style="width:100%; margin-top:6px; border-radius:4px; box-shadow:0 0 4px rgba(0,0,0,0.3);">` : ""}
+            </div>
+        `;
+
+        popup.setLngLat(coordinates).setHTML(description).addTo(map);
+    });
+
+    // Tooltip: mouseleave
+    map.on("mouseleave", "other_layer", () => {
+        map.getCanvas().style.cursor = "";
+        popup.remove();
+    });
+
+
+
+
+        // ... end of popup code
+
+    </script>
+</body>
+
+</html>
